@@ -7,7 +7,7 @@ const donationSchema = new mongoose.Schema({
   description: { type: String },
   ngo: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  status: { type: String, enum: ['pending', 'received', 'completed'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'accept', 'reject'], default: 'pending' },
   location: {
     type: {
       type: String,

@@ -50,7 +50,7 @@ export const registerUser = async (req, res) => {
       address,
       location: (latitude !== undefined && longitude !== undefined)
         ? {
-            type: 'Point',
+            type: 'Point',  
             coordinates: [longitude, latitude],
           }
         : undefined,

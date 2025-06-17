@@ -160,9 +160,10 @@ export const updateDonationStatus = async (req, res) => {
     const { donationId } = req.params;
     const { status } = req.body;
 
-    if (!['received', 'completed'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status' });
-    }
+    if (!['accept', 'reject'].includes(status)) {
+  return res.status(400).json({ message: 'Invalid status' });
+}
+
 
     if (req.user.role !== 'ngo') {
       return res.status(403).json({ message: 'Access denied: only NGO can update status' });
