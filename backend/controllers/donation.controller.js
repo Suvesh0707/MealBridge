@@ -160,15 +160,17 @@ export const updateDonationStatus = async (req, res) => {
     const { donationId } = req.params;
     const { status } = req.body;
 
+    // Only 'accept' or 'reject' allowed
     if (!['accept', 'reject'].includes(status)) {
-  return res.status(400).json({ message: 'Invalid status' });
-}
-
-
-    if (req.user.role !== 'ngo') {
-      return res.status(403).json({ message: 'Access denied: only NGO can update status' });
+      return res.status(400).json({ message: 'Invalid status. Must be "accept" or "reject".' });
     }
 
+    // Only NGO users allowed
+    if (req.user.role !== 'ngo') {
+      return res.status(403).json({ message: 'Access denied: Only NGO can update status.' });
+    }
+
+    // Update only if donation is pending and belongs to logged-in NGO
     const donation = await Donation.findOneAndUpdate(
       { _id: donationId, ngo: req.user.id, status: 'pending' },
       { status },
@@ -176,11 +178,35 @@ export const updateDonationStatus = async (req, res) => {
     );
 
     if (!donation) {
-      return res.status(404).json({ message: 'Donation request not found or already processed' });
+      return res.status(404).json({ message: 'Donation not found or already processed.' });
     }
 
-    res.json({ message: `Donation status updated to ${status}`, donation });
+    res.json({ message: `Donation status updated to "${status}"`, donation });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error updating donation status:', err);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+};
+
+// GET /api/v1/donations/mydonations
+export const getMyDonations = async (req, res) => {
+  try {
+    const userId = req.user.id; // fetched from token via 'protect' middleware
+
+    if (req.user.role !== 'user') {
+      return res.status(403).json({ message: 'Access denied: Only donors (users) can view their donations.' });
+    }
+
+    const donations = await Donation.find({ user: userId })
+      .populate('ngo', 'name email') // populate NGO details (optional)
+      .sort({ createdAt: -1 }); // show latest donations first
+
+    res.json({
+      message: 'Fetched user donations successfully',
+      donations,
+    });
+  } catch (err) {
+    console.error('Error fetching user donations:', err);
+    res.status(500).json({ message: 'Internal server error.' });
   }
 };
